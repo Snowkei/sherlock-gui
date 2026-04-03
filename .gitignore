@@ -14,10 +14,8 @@ env/
 
 # Results
 backend/results/
-*.txt
 *.csv
 *.xlsx
-*.json
 
 # Node
 node_modules/
@@ -25,10 +23,12 @@ frontend/node_modules/
 
 # Build output
 backend/static/
+frontend/dist/
 
 # Environment
 .env
 .env.local
+frontend/.env
 
 # IDE
 .vscode/
