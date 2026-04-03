@@ -1,4 +1,4 @@
-name: Build & Deploy Backend to Cloudflare
+name: Build & Deploy Backend
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   deploy-backend:
-    name: Build & Deploy Backend
+    name: Build & Push to Docker Hub
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -25,58 +25,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # ── Test Cloudflare Container Registry connectivity ──
-      - name: Test Cloudflare CR connectivity
-        id: connectivity
-        run: |
-          echo "Testing cr.cloudflare.com connectivity..."
-          HTTP_CODE=$(curl -s --connect-timeout 10 -o /dev/null -w "%{http_code}" https://cr.cloudflare.com/v2/ 2>&1 || echo "000")
-          echo "http_code=$HTTP_CODE"
-          if [[ "$HTTP_CODE" == "200" ]] || [[ "$HTTP_CODE" == "401" ]]; then
-            echo "RESULT=cf" >> $GITHUB_OUTPUT
-            echo "✅ cr.cloudflare.com is reachable"
-          else
-            echo "RESULT=dockerhub" >> $GITHUB_OUTPUT
-            echo "❌ cr.cloudflare.com is NOT reachable (code: $HTTP_CODE)"
-          fi
-
-      # ── Login to Cloudflare Container Registry ──
-      - name: Login to Cloudflare CR
-        if: steps.connectivity.outputs.RESULT == 'cf'
-        run: |
-          echo "${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}" | \
-          docker login cr.cloudflare.com -u cf-token --password-stdin
-
-      # ── Login to Docker Hub (fallback) ──
       - name: Login to Docker Hub
-        if: steps.connectivity.outputs.RESULT == 'dockerhub'
-        env:
-          DOCKER_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
-        run: |
-          echo "$DOCKER_TOKEN" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin || \
-          echo "⚠️ Docker Hub credentials not configured"
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # ── Build & Push ──
       - name: Build and push
-        run: |
-          if [[ "${{ steps.connectivity.outputs.RESULT }}" == "cf" ]]; then
-            IMAGE="cr.cloudflare.com/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/sherlock-gui-backend:latest"
-          else
-            IMAGE="docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/sherlock-gui-backend:latest"
-          fi
-          echo "Pushing to: $IMAGE"
-          docker build -t "$IMAGE" ./backend
-          docker push "$IMAGE"
-          echo "✅ Pushed: $IMAGE"
-          echo "IMAGE_URL=$IMAGE" >> $GITHUB_OUTPUT
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/sherlock-gui-backend:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/sherlock-gui-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
 
       - name: Summary
         run: |
-          echo "## ✅ Backend Image Built & Pushed" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Backend Image Pushed to Docker Hub" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| | |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Registry | \`${{ steps.connectivity.outputs.RESULT == 'cf' && 'Cloudflare CR' || 'Docker Hub' }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Image | \`${{ env.IMAGE_URL }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/sherlock-gui-backend:latest\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| SHA | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Go to **Cloudflare Dashboard → Container Hosting** to deploy this image." >> $GITHUB_STEP_SUMMARY
+          echo "**Next**: Go to Cloudflare Dashboard → Container Hosting → Deploy from Docker Hub" >> $GITHUB_STEP_SUMMARY
