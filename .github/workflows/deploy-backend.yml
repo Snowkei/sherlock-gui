@@ -19,10 +19,6 @@ jobs:
       contents: read
       packages: write
 
-    outputs:
-      image: ghcr.io/snowkei/sherlock-gui-backend:latest
-      sha: ${{ steps.meta.outputs.tags }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +39,7 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/sherlock-gui-backend
           tags: |
-            type=sha,prefix=
+            type=sha
             type=raw,value=latest
 
       - name: Build and push
@@ -56,23 +52,14 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
 
-      - name: Deploy to Fly.io
-        uses: superfly/flyctl-actions/setup-flyctl@master
-        with:
-          api_token: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Deploy to Fly.io
-        run: |
-          flyctl deploy --image ghcr.io/${{ github.repository_owner }}/sherlock-gui-backend:${{ github.sha }} --app sherlock-gui-backend --yes
-        continue-on-error: true
-
       - name: Summary
         run: |
-          echo "## ✅ Backend Built & Pushed" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Backend Built & Pushed to GHCR" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Item | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
           echo "| Image | \`ghcr.io/${{ github.repository_owner }}/sherlock-gui-backend:latest\` |" >> $GITHUB_STEP_SUMMARY
           echo "| SHA | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Registry | GHCR (GitHub Container Registry) |" >> $GITHUB_STEP_SUMMARY
-          echo "| Fly.io | Auto-deployed (if configured) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry | GHCR (public) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Railway**: Connect your repo at [railway.app](https://railway.app) → New Project → Deploy from GitHub" >> $GITHUB_STEP_SUMMARY
