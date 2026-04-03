@@ -1,4 +1,4 @@
-name: Build & Deploy Frontend
+name: Build & Deploy Frontend to Cloudflare Pages
 
 on:
   push:
@@ -7,12 +7,10 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/deploy-frontend.yml'
-
-  # 手动触发，可指定后端 URL
   workflow_dispatch:
     inputs:
       backend_url:
-        description: 'Backend API URL (e.g. https://sherlock-gui-backend.fly.dev)'
+        description: 'Backend API URL (e.g. https://sherlock-gui-backend.railway.app)'
         required: false
         type: string
 
@@ -42,12 +40,14 @@ jobs:
         run: |
           URL="${{ github.events.inputs.backend_url || secrets.VITE_API_BASE_URL || '' }}"
           echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "Using backend: ${URL:-'(will need manual update)'}" >> $GITHUB_STEP_SUMMARY
 
       - name: Write .env
         run: |
           if [ -n "${{ steps.backend.outputs.url }}" ]; then
             echo "VITE_API_BASE=${{ steps.backend.outputs.url }}" > frontend/.env
+            echo "VITE_API_BASE set to: ${{ steps.backend.outputs.url }}"
+          else
+            echo "No backend URL — frontend will call its own origin"
           fi
 
       - name: Install dependencies
@@ -70,11 +70,7 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## Frontend Deployed ✅" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Frontend Deployed to Cloudflare Pages" >> $GITHUB_STEP_SUMMARY
           if [ -n "${{ steps.backend.outputs.url }}" ]; then
-            echo "**Backend API**: \`${{ steps.backend.outputs.url }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "To update the backend URL in future deploys, set \`VITE_API_BASE_URL\` in GitHub Secrets." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ No backend URL configured. Set \`VITE_API_BASE_URL\` in GitHub Secrets, or pass it via manual trigger." >> $GITHUB_STEP_SUMMARY
+            echo "Backend API: \`${{ steps.backend.outputs.url }}\`" >> $GITHUB_STEP_SUMMARY
           fi
