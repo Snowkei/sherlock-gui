@@ -1,0 +1,29 @@
+services:
+  sherlock-gui:
+    build:
+      context: ../
+      dockerfile: backend/Dockerfile
+    container_name: sherlock-gui
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CORS_ORIGINS=https://your-domain.com
+    volumes:
+      - ./results:/app/results
+    restart: always
+    networks:
+      - sherlock-net
+
+  # Cloudflare Tunnel (uncomment and configure to expose via Cloudflare)
+  # cloudflare-tunnel:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: sherlock-cf-tunnel
+  #   command: tunnel run --token YOUR_TUNNEL_TOKEN
+  #   depends_on:
+  #     - sherlock-gui
+  #   restart: always
+
+networks:
+  sherlock-net:
+    driver: bridge
