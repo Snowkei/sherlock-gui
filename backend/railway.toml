@@ -1,8 +1,13 @@
 [build]
   builder = "dockerfile"
+  dockerfilePath = "Dockerfile"
 
 [deploy]
   healthcheckPath = "/health"
+  healthcheckPort = 8080
   restartPolicyType = "on-failure"
   restartPolicyMaxRetries = 10
   numReplicas = 1
+
+[settings]
+  port = 8080
