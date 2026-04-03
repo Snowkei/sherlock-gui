@@ -354,7 +354,7 @@
 <script>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 
-const API_BASE = window.location.origin
+const API_BASE = window.API_BASE || window.location.origin
 
 export default {
   name: 'App',

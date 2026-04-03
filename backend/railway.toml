@@ -1,0 +1,8 @@
+[build]
+  builder = "dockerfile"
+
+[deploy]
+  healthcheckPath = "/health"
+  restartPolicyType = "on-failure"
+  restartPolicyMaxRetries = 10
+  numReplicas = 1

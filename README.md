@@ -1,16 +1,18 @@
 # Sherlock GUI
 
-A beautiful web interface for [Sherlock](https://github.com/sherlock-project/sherlock) — find usernames across 400+ social platforms.
+> 🔍 A beautiful web interface for [Sherlock](https://github.com/sherlock-project/sherlock) — find usernames across 400+ social platforms.
+
+**Live Demo**: https://sherlock-gui.pages.dev
 
 ## Features
 
 - 🎨 Modern dark-themed UI
-- ⚡ Preset modes: Quick Scan, Full Scan, Tor Stealth, Chinese Platforms, NSFW
-- 🌐 Full config: Tor, Proxy, Timeout, Output format (CSV/Excel)
-- 🔎 Select platforms from a 400+ list
+- ⚡ Preset modes: Quick Scan · Full Scan · Tor Stealth · Chinese Platforms · NSFW
+- 🌐 Configurable: Tor, Proxy, Timeout, Output formats (CSV/Excel)
+- 🔎 Select platforms from a 400+ site list
 - 📥 Download results per username
-- 🐳 Docker-ready with one-command deployment
-- ☁️ Cloudflare Tunnel / Pages deployment supported
+- 🐳 Docker-ready
+- ☁️ Auto-deploy via GitHub Actions → Cloudflare Pages + Railway
 
 ## Quick Start
 
@@ -21,15 +23,21 @@ docker compose -f deploy/docker-compose.yml up -d
 # Open http://localhost:8000
 ```
 
-### Build Frontend + Run
+### Local Development
 
 ```bash
-cd frontend && npm install && npm run build
-cd ../backend && pip install -r requirements.txt && python main.py
-# Open http://localhost:8000
+# Backend
+cd backend && pip install -r requirements.txt && python main.py
+
+# Frontend (separate terminal)
+cd frontend && npm install && npm run dev
 ```
 
-## API
+## Deploy to Production
+
+See [DEPLOY.md](./DEPLOY.md) for step-by-step deployment instructions.
+
+## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|

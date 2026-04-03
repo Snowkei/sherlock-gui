@@ -1,0 +1,61 @@
+name: Deploy Frontend to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+      - '!frontend/node_modules/**'
+      - '!frontend/dist/**'
+
+# Cancel in-progress runs when a new one starts
+concurrency:
+  group: frontend-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      # Build with backend API URL injected
+      # After Railway deploys backend, update this secret with the actual URL
+      # e.g. https://sherlock-gui-backend.railway.app
+      - name: Build with API URL
+        run: |
+          node -e "const fs=require('fs'); fs.writeFileSync('frontend/.env','VITE_API_BASE='+process.env.BACKEND_URL+'\n')"
+          npm run build
+        working-directory: frontend
+        env:
+          BACKEND_URL: ${{ secrets.VITE_API_BASE_URL || 'https://sherlock-gui-backend.railway.app' }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: sherlock-gui
+          directory: frontend/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: '3'
+
+      - name: Output deployed URL
+        run: echo "Frontend deployed!"
