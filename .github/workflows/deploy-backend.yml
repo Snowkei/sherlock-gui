@@ -1,4 +1,4 @@
-name: Build & Deploy Backend to Cloudflare Container
+name: Build & Deploy Backend
 
 on:
   push:
@@ -14,43 +14,20 @@ on:
 
 jobs:
   deploy-backend:
-    name: Deploy Backend to Cloudflare Container
+    name: Deploy Backend (Railway)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # ── Login to Cloudflare Container Registry ──
-      - name: Log in to Cloudflare
+      - name: Trigger Railway Deploy
         run: |
-          echo "${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}" | \
-          docker login cr.cloudflare.com -u cf-token --password-stdin
-
-      # ── Build & Push directly to Cloudflare ──────
-      - name: Build and push to Cloudflare
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: true
-          tags: |
-            cr.cloudflare.com/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/sherlock-gui-backend:latest
-            cr.cloudflare.com/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/sherlock-gui-backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
-
-      - name: Summary
-        run: |
-          echo "## ✅ Backend Deployed to Cloudflare Container" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| | |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Image | \`cr.cloudflare.com/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/sherlock-gui-backend:latest\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| SHA | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Go to [Cloudflare Dashboard → Container Hosting](https://dash.cloudflare.com/?to=/:account/container) to verify the deployment." >> $GITHUB_STEP_SUMMARY
+          echo "Railway auto-deploys from GitHub when you connect the repo."
+          echo "GitHub Actions → Railway integration is the recommended approach."
+          echo ""
+          echo "To set up:"
+          echo "1. Go to https://railway.app"
+          echo "2. New Project → Deploy from GitHub"
+          echo "3. Select 'snowkei/sherlock-gui'"
+          echo "4. Railway will auto-detect backend/Dockerfile"
+          echo "5. Copy the Railway URL (e.g. https://sherlock-gui-backend.up.railway.app)"
+          echo "6. Add it as VITE_API_BASE_URL in GitHub Secrets"
