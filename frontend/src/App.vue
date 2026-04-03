@@ -566,7 +566,7 @@ export default {
       sitesInput, selectedSites, allSites, presets, allJobs, currentJobId,
       isSearching, currentJob, showSitePicker, siteSearch, filteredSites,
       showAll, collapsedSections, toast,
-      parsedSites, filteredSites,
+      parsedSites,
       addUsername, removeUsername, applyPreset, toggleSection, confirmSites,
       selectJob, clearJob, getExt, downloadFile, copyOutput, startSearch,
     }
@@ -878,3 +878,6 @@ export default {
   .sidebar { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); max-height: 50vh; }
   .feature-grid { grid-template-columns: 1fr; }
 }
+
+
+</style>
